@@ -3,24 +3,26 @@ from subprocess import Popen, PIPE
 
 from tabulate import tabulate
 
-res = {'reachable': '', 'unreachable': ''}
+result = {'reachable': '', 'unreachable': ''}
 
 
-def host_ping(list_ping, time_out=500, request=1):
-    for ip_addr in list_ping:
+def host_ping(hosts_list, time_out=500, request=1):
+    for host in hosts_list:
         try:
-            addr = ip_address(ip_addr)
-            print(addr)
+            ipv4 = ip_address(host)
         except ValueError as val:
             print(f'{val}')
             continue
-        ping_proc = Popen(f'ping {ip_addr} -w {time_out} -n {request}', shell=False, stdout=PIPE)
-        ping_proc.wait()
-        if ping_proc.returncode == 0:
-            res['reachable'] += f'{str(ip_addr)}\n'
+        response = Popen(f'ping {host} -w {time_out} -n {request}', shell=False, stdout=PIPE)
+        response.wait()
+        if response.returncode == 0:
+            result['reachable'] += f'{str(host)}\n'
+            res_str = f'{ipv4} - Узел доступен'
         else:
-            res['unreachable'] += f'{str(ip_addr)}\n'
-    return res
+            result['unreachable'] += f'{str(host)}\n'
+            res_str = f'{ipv4} - Узел недоступен'
+        print(res_str)
+    return result
 
 
 def host_range_ping():
@@ -42,9 +44,9 @@ def host_range_ping():
             else:
                 break
 
-    hosts = []
-    [hosts.append(str(ip_address(IP) + x)) for x in range(int(num))]
-    return host_ping(hosts)
+    hosts_list = []
+    [hosts_list.append(str(ip_address(IP) + x)) for x in range(int(num))]
+    return host_ping(hosts_list)
 
 
 def host_range_ping_tab():

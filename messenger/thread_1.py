@@ -61,14 +61,14 @@ def host_range_ping(res=False):
 
 
 def host_range_ping_tab():
-    res_dict = host_range_ping(True)
+    out = host_range_ping(True)
     print()
-    print(tabulate([res_dict], headers='keys', tablefmt='pipe', stralign='center'))
+    print(tabulate([out], headers='keys', tablefmt='pipe', stralign='center'))
 
 
 if __name__ == '__main__':
-    hosts_list = ['192.125.1.10', '8.8.8.8', 'yandex.ru', 'google.com',
+    hosts = ['192.125.1.10', '8.8.8.8', 'yandex.ru', 'google.com',
                   '0.0.0.1', '0.0.0.2', '0.0.0.3', '0.0.0.4', '0.0.0.5']
-    host_ping(hosts_list)
+    host_ping(hosts)
     host_range_ping()
     host_range_ping_tab()
