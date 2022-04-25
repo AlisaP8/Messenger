@@ -13,7 +13,7 @@ def host_ping(hosts_list, time_out=500, request=1):
         except ValueError as val:
             print(f'{val}')
             continue
-        response = Popen(f'ping {host} -w {time_out} -n {request}', shell=False, stdout=PIPE)
+        response = Popen(['ping', f'{host}', '-w', f'{time_out}', '-n', f'{request}'], shell=False, stdout=PIPE)
         response.wait()
         if response.returncode == 0:
             result['reachable'] += f'{str(host)}\n'
