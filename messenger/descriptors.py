@@ -1,12 +1,17 @@
 import logging
+import sys
 
-server_log = logging.getLogger('server_dist')
+
+if sys.argv[0].find('client_dist') == -1:
+    log = logging.getLogger('server_dist')
+else:
+    log = logging.getLogger('client_dist')
 
 
 class Port:
     def __set__(self, instance, value):
         if not 1023 < value < 65536:
-            server_log.critical(f'Неподходящий порт {value}')
+            log.critical(f'Неподходящий порт {value}')
             exit(1)
         instance.__dict__[self.name] = value
 
