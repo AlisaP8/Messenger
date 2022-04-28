@@ -26,13 +26,13 @@ class ServerVerifier(type):
                     elif i.opname == 'LOAD_ATTR':
                         if i.argval not in attrs:
                             attrs.append(i.argval)
-        print(20 * '-', 'methods', 20 * '-')
-        pprint(methods)
-        print(20 * '-', 'methods_2', 20 * '-')
-        pprint(methods_2)
-        print(22 * '-', 'attrs', 22 * '-')
-        pprint(attrs)
-        print(50 * '-')
+        # print(20 * '-', 'methods', 20 * '-')
+        # pprint(methods)
+        # print(20 * '-', 'methods_2', 20 * '-')
+        # pprint(methods_2)
+        # print(22 * '-', 'attrs', 22 * '-')
+        # pprint(attrs)
+        # print(50 * '-')
         if 'connect' in methods:
             raise TypeError('Использование метода connect недопустимо в серверном классе')
         if not ('SOCK_STREAM' in attrs and 'AF_INET' in attrs):

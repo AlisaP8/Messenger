@@ -12,7 +12,7 @@ from common.utils import get_message, send_message
 from errors import ServerError, ReqFieldMissingError, IncorrectDataRecivedError
 from metaclasses import ClientVerifier
 
-client_log = logging.getLogger('client')
+client_log = logging.getLogger('client_dist')
 
 
 class ClientSender(threading.Thread, metaclass=ClientVerifier):
