@@ -15,8 +15,10 @@ def get_message(client):
         response = json.loads(json_response)
         if isinstance(response, dict):
             return response
+        else:
+            raise IncorrectDataRecivedError
+    else:
         raise IncorrectDataRecivedError
-    raise IncorrectDataRecivedError
 
 
 def send_message(sock, message):

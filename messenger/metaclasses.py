@@ -5,7 +5,6 @@ from pprint import pprint
 class ServerVerifier(type):
     def __init__(cls, clsname, bases, clsdict):
         methods = []
-        methods_2 = []
         attrs = []
         for func in clsdict:
             try:
@@ -13,26 +12,14 @@ class ServerVerifier(type):
 
             except TypeError as err:
                 print(f'{err}')
-                # pass
             else:
                 for i in ret:
-                    # print(i)
                     if i.opname == 'LOAD_GLOBAL':
                         if i.argval not in methods:
                             methods.append(i.argval)
-                    elif i.opname == 'LOAD_METHOD':
-                        if i.argval not in methods_2:
-                            methods_2.append(i.argval)
                     elif i.opname == 'LOAD_ATTR':
                         if i.argval not in attrs:
                             attrs.append(i.argval)
-        # print(20 * '-', 'methods', 20 * '-')
-        # pprint(methods)
-        # print(20 * '-', 'methods_2', 20 * '-')
-        # pprint(methods_2)
-        # print(22 * '-', 'attrs', 22 * '-')
-        # pprint(attrs)
-        # print(50 * '-')
         if 'connect' in methods:
             raise TypeError('Использование метода connect недопустимо в серверном классе')
         if not ('SOCK_STREAM' in attrs and 'AF_INET' in attrs):

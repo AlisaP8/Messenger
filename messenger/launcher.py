@@ -1,6 +1,6 @@
 import subprocess
 
-process = []
+process_list = []
 
 while True:
     ACTION = input('Выберите действие: q - выход, '
@@ -10,13 +10,20 @@ while True:
     if ACTION == 'q':
         break
     elif ACTION == 's':
-        process.append(subprocess.Popen('python server.py',
-                                        creationflags=subprocess.CREATE_NEW_CONSOLE))
+        clients_count = int(input('Введите количество клиентов для запуска: '))
+        process_list.append(subprocess.Popen('python server.py',
+                                             creationflags=subprocess.CREATE_NEW_CONSOLE))
+        for i in range(clients_count):
+            process_list.append(subprocess.Popen(f'python client.py -n test{i+1}',
+                                                 creationflags=subprocess.CREATE_NEW_CONSOLE))
 
-        for i in range(2):
-            process.append(subprocess.Popen(f'python client.py -n test{i+1}',
-                                            creationflags=subprocess.CREATE_NEW_CONSOLE))
     elif ACTION == 'x':
-        while process:
-            victim = process.pop()
-            victim.kill()
+        while process_list:
+            process_list.pop().kill()
+
+    # elif ACTION == 'x':
+    #     for process in process_list:
+    #         process.kill()
+    #     process_list.clear()
+    # else:
+    #     print('Ошибка')

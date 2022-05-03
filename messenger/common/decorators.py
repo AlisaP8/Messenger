@@ -4,7 +4,7 @@ import sys
 import traceback
 
 
-if sys.argv[0].find('client.py') == -1:
+if sys.argv[0].find('client_3.py') == -1:
     log = logging.getLogger('server')
 else:
     log = logging.getLogger('client')
