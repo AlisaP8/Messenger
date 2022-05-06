@@ -154,13 +154,13 @@ class ServerStorage:
         if not contact:
             return
 
-        print(self.sess.query(self.UsersContacts).
-              filter(self.UsersContacts.user == user.id,
-                     self.UsersContacts.contact == contact.id).delete())
+        self.sess.query(self.UsersContacts).filter(self.UsersContacts.user == user.id,
+                                                   self.UsersContacts.contact == contact.id).delete()
         self.sess.commit()
 
     def users_list(self):
-        query = self.sess.query(self.AllUsers.name, self.AllUsers.last_login)
+        query = self.sess.query(self.AllUsers.name,
+                                self.AllUsers.last_login)
         return query.all()
 
     def active_users_list(self):
@@ -205,19 +205,8 @@ class ServerStorage:
 
 if __name__ == '__main__':
     test_db = ServerStorage('server_base.db3')
-    test_db.user_login('Вася', '192.125.1.10', 80)
+    test_db.user_login('Валя', '192.125.1.10', 8080)
     test_db.user_login('Петя', '192.152.1.8', 7777)
-
-    print(10 * '-', 'active_users_list()', 10 * '-')
-    print(test_db.active_users_list())
-
-    test_db.user_logout('Вася')
-
-    print(10 * '-', 'active_users_list() after logout Вася', 10 * '-')
-    print(test_db.active_users_list())
-
-    print(10 * '-', 'login_history(Вася)', 10 * '-')
-    print(test_db.login_history('Вася'))
-
-    print(10 * '-', 'users_list()', 10 * '-')
     print(test_db.users_list())
+    test_db.process_message('Валя', '1111')
+    print(test_db.message_history())

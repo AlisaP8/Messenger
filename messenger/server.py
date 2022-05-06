@@ -62,7 +62,7 @@ class Server(threading.Thread, metaclass=ServerVerifier):
         self.sock.listen()
 
     def run(self):
-
+        global new_connect
         self.init_socket()
 
         while True:
@@ -91,12 +91,15 @@ class Server(threading.Thread, metaclass=ServerVerifier):
                                                     client_with_message)
                     except OSError:
                         log.info(f'Клиент {client_with_message.getpeername()} отключился от сервера.')
+
                         for name in self.names:
                             if self.names[name] == client_with_message:
                                 self.database.user_logout(name)
                                 del self.names[name]
                                 break
                         self.clients.remove(client_with_message)
+                        with flag_lock:
+                            new_connect = True
 
             for message in self.messages:
                 try:
@@ -107,14 +110,18 @@ class Server(threading.Thread, metaclass=ServerVerifier):
                     self.clients.remove(self.names[message[DESTINATION]])
                     self.database.user_logout(message[DESTINATION])
                     del self.names[message[DESTINATION]]
+                    with flag_lock:
+                        new_connect = True
             self.messages.clear()
 
     def process_message(self, message, listen_socks):
-        if message[DESTINATION] in self.names and self.names[message[DESTINATION]] in listen_socks:
+        if message[DESTINATION] in self.names \
+                and self.names[message[DESTINATION]] in listen_socks:
             send_message(self.names[message[DESTINATION]], message)
             log.info(f'Отправлено сообщение пользователю {message[DESTINATION]} '
                      f'от пользователя {message[SENDER]}.')
-        elif message[DESTINATION] in self.names and self.names[message[DESTINATION]] not in listen_socks:
+        elif message[DESTINATION] in self.names \
+                and self.names[message[DESTINATION]] not in listen_socks:
             raise ConnectionError
         else:
             log.error(f'Пользователь {message[DESTINATION]} не зарегистрирован на сервере, '
@@ -125,7 +132,8 @@ class Server(threading.Thread, metaclass=ServerVerifier):
 
         log.debug(f'Обработка сообщения от клиента: {message}')
 
-        if ACTION in message and message[ACTION] == PRESENCE and TIME in message \
+        if ACTION in message and message[ACTION] == PRESENCE \
+                and TIME in message \
                 and USER in message:
 
             if message[USER][ACCOUNT_NAME] not in self.names.keys():
@@ -144,16 +152,24 @@ class Server(threading.Thread, metaclass=ServerVerifier):
                 client.close()
             return
 
-        elif ACTION in message and message[ACTION] == MESSAGE and \
-                DESTINATION in message and TIME in message \
-                and SENDER in message and MESSAGE_TEXT in message and \
-                self.names[message[SENDER]] == client:
-            self.messages.append(message)
-            self.database.process_message(message[SENDER],
+        elif ACTION in message and message[ACTION] == MESSAGE \
+                and DESTINATION in message \
+                and TIME in message \
+                and SENDER in message \
+                and MESSAGE_TEXT in message \
+                and self.names[message[SENDER]] == client:
+            if message[DESTINATION] in self.names:
+                self.messages.append(message)
+                self.database.process_message(message[SENDER],
                                           message[DESTINATION])
+                send_message(client, {RESPONSE: 200})
+            else:
+                response = RESPONDEFAULT_IP_ADDRESS
+                response[ERROR] = 'Пользователь не зарегистрирован'
             return
 
-        elif ACTION in message and message[ACTION] == EXIT and ACCOUNT_NAME in message \
+        elif ACTION in message and message[ACTION] == EXIT \
+                and ACCOUNT_NAME in message \
                 and self.names[message[ACCOUNT_NAME]] == client:
             self.database.user_logout(message[ACCOUNT_NAME])
             self.clients.remove(self.names[message[ACCOUNT_NAME]])
@@ -164,19 +180,22 @@ class Server(threading.Thread, metaclass=ServerVerifier):
             return
 
         elif ACTION in message and message[ACTION] == GET_CONTACTS \
-                and USER in message and self.names[message[USER]] == client:
+                and USER in message \
+                and self.names[message[USER]] == client:
             response = RESPONSE_202
             response[LIST_INFO] = self.database.get_contacts(message[USER])
             send_message(client, response)
 
         elif ACTION in message and message[ACTION] == ADD_CONTACT \
-                and ACCOUNT_NAME in message and USER in message \
+                and ACCOUNT_NAME in message \
+                and USER in message \
                 and self.names[message[USER]] == client:
             self.database.add_contact(message[USER], message[ACCOUNT_NAME])
             send_message(client, {RESPONSE: 200})
 
-        elif ACTION in message and message[ACTION] == REMOVE_CONTACT\
-                and ACCOUNT_NAME in message and USER in message \
+        elif ACTION in message and message[ACTION] == REMOVE_CONTACT \
+                and ACCOUNT_NAME in message \
+                and USER in message \
                 and self.names[message[USER]] == client:
             self.database.remove_contact(message[USER], message[ACCOUNT_NAME])
             send_message(client, {RESPONSE: 200})
@@ -195,12 +214,24 @@ class Server(threading.Thread, metaclass=ServerVerifier):
             return
 
 
-def main():
-
+def config_load():
     config = configparser.ConfigParser()
-
     dir_path = os.path.dirname(os.path.realpath(__file__))
     config.read(f"{dir_path}/{'server.ini'}")
+    if 'SETTINGS' in config:
+        return config
+    else:
+        config.add_section('SETTINGS')
+        config.set('SETTINGS', 'Default_port', str(DEFAULT_PORT))
+        config.set('SETTINGS', 'Listen_Address', '')
+        config.set('SETTINGS', 'Database_path', '')
+        config.set('SETTINGS', 'Database_file', 'server_database.db3')
+        return config
+
+
+def main():
+
+    config = config_load()
 
     listen_address, listen_port = arg_parser(config['SETTINGS']['Default_port'],
                                              config['SETTINGS']['Listen_Address'])
@@ -214,7 +245,6 @@ def main():
     server.daemon = True
     server.start()
 
-    # print_help()
     server_app = QApplication(sys.argv)
     main_window = MainWindow()
 
@@ -263,8 +293,9 @@ def main():
             config['SETTINGS']['Listen_Address'] = config_window.ip.text()
             if 1023 < port < 65536:
                 config['SETTINGS']['Default_port'] = str(port)
+                dir_path = os.path.dirname(os.path.realpath(__file__))
                 print(port)
-                with open('server.ini', 'w') as conf:
+                with open(f"{dir_path}/{'server_dist.ini'}", 'w') as conf:
                     config.write(conf)
                     message.information(config_window,
                                         'ОК', 'Настройки успешно сохранены!')
