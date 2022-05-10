@@ -11,11 +11,11 @@ PATH = os.path.join(PATH, 'client.log')
 
 stream_hand = logging.StreamHandler()
 stream_hand.setFormatter(client_formatter)
-stream_hand.setLevel(logging.ERROR)
+stream_hand.setLevel(logging.INFO)
 log_file = logging.FileHandler(PATH, encoding='utf-8')
 log_file.setFormatter(client_formatter)
 
-log = logging.getLogger('client')
+log = logging.getLogger('client_dist')
 log.addHandler(stream_hand)
 log.addHandler(log_file)
 log.setLevel(logging.DEBUG)

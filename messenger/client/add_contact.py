@@ -54,20 +54,20 @@ class AddContactDialog(QDialog):
 
     def update_possible_contacts(self):
         try:
-            self.transport.user_list_update()
+            self.transport.user_list_request()
         except OSError:
             pass
         else:
             logger.debug('Обновление списка пользователей с сервера выполнено')
             self.possible_contacts_update()
 
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    from client_db import ClientDatabase
-    database = ClientDatabase('test1')
-    from transport import ClientTransport
-    transport = ClientTransport(7777, '127.0.0.1', database, 'test1')
-    window = AddContactDialog(transport, database)
-    window.show()
-    app.exec_()
+#
+# if __name__ == '__main__':
+#     app = QApplication(sys.argv)
+#     from client_db import ClientDatabase
+#     database = ClientDatabase('test1')
+#     from transport import ClientTransport
+#     transport = ClientTransport(7777, '127.0.0.1', database, 'test1')
+#     window = AddContactDialog(transport, database)
+#     window.show()
+#     app.exec_()

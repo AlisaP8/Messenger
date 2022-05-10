@@ -5,7 +5,7 @@ from sqlalchemy import create_engine, Table, Column, Integer, String, Text, Meta
 from sqlalchemy.orm import mapper, sessionmaker
 from common.variables import *
 from datetime import datetime
-sys.path.append('..')
+sys.path.append('../')
 
 
 class ClientDatabase:
@@ -72,6 +72,10 @@ class ClientDatabase:
             contact_row = self.Contacts(contact)
             self.sess.add(contact_row)
             self.sess.commit()
+
+    def contacts_clear(self):
+        self.sess.query(self.Contacts).delete()
+        self.sess.commit()
 
     def del_contact(self, contact):
         self.sess.query(self.Contacts).filter_by(name=contact).delete()

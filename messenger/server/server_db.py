@@ -1,13 +1,15 @@
 from datetime import datetime
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, ForeignKey, DateTime, String
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, ForeignKey, DateTime, String, Text
 from sqlalchemy.orm import mapper, sessionmaker
 
 
 class ServerStorage:
     class AllUsers:
-        def __init__(self, username):
+        def __init__(self, username, passwd_hash):
             self.name = username
             self.last_login = datetime.now()
+            self.passwd_hash = passwd_hash
+            self.pubkey = None
             self.id = None
 
     class LoginHistory:
@@ -20,11 +22,11 @@ class ServerStorage:
 
     class ActiveUsers:
         def __init__(self, user_id, ip_address, port, login_time):
+            self.id = None
             self.user = user_id
             self.ip_address = ip_address
             self.port = port
             self.login_time = login_time
-            self.id = None
 
     class UsersContacts:
         def __init__(self, user, contact):
@@ -49,9 +51,11 @@ class ServerStorage:
                             Column('id', Integer, primary_key=True),
                             Column('name', String, unique=True),
                             Column('last_login', DateTime),
+                            Column('passwd_hash', String),
+                            Column('pubkey', Text),
                             )
 
-        user_login_history = Table('login_history', self.metadata,
+        user_login_history = Table('Login_history', self.metadata,
                                    Column('id', Integer, primary_key=True),
                                    Column('name', ForeignKey('Users.id')),
                                    Column('date', DateTime),
@@ -73,7 +77,7 @@ class ServerStorage:
                                Column('contact', ForeignKey('Users.id')),
                                )
 
-        users_history_table = Table('hist', self.metadata,
+        users_history_table = Table('History', self.metadata,
                                     Column('id', Integer, primary_key=True),
                                     Column('user', ForeignKey('Users.id')),
                                     Column('sent', Integer),
@@ -94,18 +98,21 @@ class ServerStorage:
         self.sess.query(self.ActiveUsers).delete()
         self.sess.commit()
 
-    def user_login(self, username, ip_address, port):
+    def user_login(self, username, ip_address, port, key):
         res = self.sess.query(self.AllUsers).filter_by(name=username)
 
         if res.count():
             user = res.first()
             user.last_login = datetime.now()
+            if user.pubkey != key:
+                user.pubkey = key
         else:
-            user = self.AllUsers(username)
-            self.sess.add(user)
-            self.sess.commit()
-            user_in_history = self.UsersHistory(user.id)
-            self.sess.add(user_in_history)
+            # user = self.AllUsers(username)
+            # self.sess.add(user)
+            # self.sess.commit()
+            # user_in_history = self.UsersHistory(user.id)
+            # self.sess.add(user_in_history)
+            raise ValueError('Пользователь не зарегистрирован')
 
         new_active_user = self.ActiveUsers(user.id, ip_address, port, datetime.now())
         self.sess.add(new_active_user)
@@ -115,6 +122,40 @@ class ServerStorage:
 
         self.sess.commit()
 
+    def add_user(self, name, passwd_hash):
+        user_row = self.AllUsers(name, passwd_hash)
+        self.sess.add(user_row)
+        self.sess.commit()
+        history_row = self.UsersHistory(user_row.id)
+        self.sess.add(history_row)
+        self.sess.commit()
+
+    def remove_user(self, name):
+        user = self.sess.query(self.AllUsers).filter_by(name=name).first()
+        self.sess.query(self.ActiveUsers).filter_by(user=user.id).delete()
+        self.sess.query(self.LoginHistory).filter_by(name=user.id).delete()
+        self.sess.query(self.UsersContacts).filter_by(user=user.id).delete()
+        self.sess.query(
+            self.UsersContacts).filter_by(
+            contact=user.id).delete()
+        self.sess.query(self.UsersHistory).filter_by(user=user.id).delete()
+        self.sess.query(self.AllUsers).filter_by(name=name).delete()
+        self.sess.commit()
+
+    def get_hash(self, name):
+        user = self.sess.query(self.AllUsers).filter_by(name=name).first()
+        return user.passwd_hash
+
+    def get_pubkey(self, name):
+        user = self.sess.query(self.AllUsers).filter_by(name=name).first()
+        return user.pubkey
+
+    def check_user(self, name):
+        if self.sess.query(self.AllUsers).filter_by(name=name).count():
+            return True
+        else:
+            return False
+
     def user_logout(self, username):
         user = self.sess.query(self.AllUsers).filter_by(name=username).first()
 
@@ -122,15 +163,11 @@ class ServerStorage:
         self.sess.commit()
 
     def process_message(self, sender, rec):
-        sender = self.sess.query(self.AllUsers).\
-            filter_by(name=sender).first().id
-        rec = self.sess.query(self.AllUsers).\
-            filter_by(name=rec).first().id
-        sender_row = self.sess.query(self.UsersHistory).\
-            filter_by(user=sender).first()
+        sender = self.sess.query(self.AllUsers).filter_by(name=sender).first().id
+        rec = self.sess.query(self.AllUsers).filter_by(name=rec).first().id
+        sender_row = self.sess.query(self.UsersHistory).filter_by(user=sender).first()
         sender_row.sent += 1
-        rec_row = self.sess.query(self.UsersHistory).\
-            filter_by(user=rec).first()
+        rec_row = self.sess.query(self.UsersHistory).filter_by(user=rec).first()
         rec_row.accepted += 1
 
         self.sess.commit()
@@ -139,7 +176,8 @@ class ServerStorage:
         user = self.sess.query(self.AllUsers).filter_by(name=user).first()
         contact = self.sess.query(self.AllUsers).filter_by(name=contact).first()
 
-        if not contact or self.sess.query(self.UsersContacts).filter_by(user=user.id, contact=contact.id).count():
+        if not contact or self.sess.query(self.UsersContacts).filter_by(
+                user=user.id, contact=contact.id).count():
             return
 
         contact_row = self.UsersContacts(user.id, contact.id)
@@ -154,8 +192,9 @@ class ServerStorage:
         if not contact:
             return
 
-        self.sess.query(self.UsersContacts).filter(self.UsersContacts.user == user.id,
-                                                   self.UsersContacts.contact == contact.id).delete()
+        self.sess.query(self.UsersContacts).filter(
+            self.UsersContacts.user == user.id,
+            self.UsersContacts.contact == contact.id).delete()
         self.sess.commit()
 
     def users_list(self):

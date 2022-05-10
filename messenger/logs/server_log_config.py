@@ -10,11 +10,11 @@ PATH = os.path.join(PATH, 'server.log')
 
 stream_hand = logging.StreamHandler()
 stream_hand.setFormatter(server_formatter)
-stream_hand.setLevel(logging.ERROR)
+stream_hand.setLevel(logging.INFO)
 log_file = logging.handlers.TimedRotatingFileHandler(PATH, encoding='utf-8', interval=1, when='D')
 log_file.setFormatter(server_formatter)
 
-log = logging.getLogger('server')
+log = logging.getLogger('server_dist')
 log.addHandler(stream_hand)
 log.addHandler(log_file)
 log.setLevel(logging.DEBUG)
