@@ -267,7 +267,7 @@ class MessageProcess(threading.Thread):
                 self.names[message[USER][ACCOUNT_NAME]] = sock
                 client_ip, client_port = sock.getpeername()
                 try:
-                    send_message(sock, {'RESPONSE; 200'})
+                    send_message(sock, {RESPONSE: 200})
                 except OSError:
                     self.remove_client(message[USER][ACCOUNT_NAME])
                 self.database.user_login(

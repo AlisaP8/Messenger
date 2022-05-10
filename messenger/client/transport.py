@@ -55,8 +55,8 @@ class ClientTransport(threading.Thread, QObject):
             try:
                 self.transport.connect((ip, port))
             except (OSError, ConnectionRefusedError) as e:
-                print(e)
-                # pass
+                # print(e)
+                pass
             else:
                 connected = True
                 log.debug('Соединение установлено')
