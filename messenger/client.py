@@ -7,14 +7,14 @@ import sys
 from Cryptodome.PublicKey import RSA
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
-from client.main_window import ClientMainWindow
-from client.start_dialog import UserNameDialog
-from client.transport import ClientTransport
+from client_mod.main_window import ClientMainWindow
+from client_mod.start_dialog import UserNameDialog
+from client_mod.transport import ClientTransport
 from common.decorators import logger
 from common.variables import *
 from common.utils import *
 from common.errors import ServerError
-from client.client_db import ClientDatabase
+from client_mod.client_db import ClientDatabase
 import logs.client_log_config
 
 log = logging.getLogger('client_dist')

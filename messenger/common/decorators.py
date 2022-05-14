@@ -25,7 +25,7 @@ def logger(func):
 def login_required(func):
 
     def checker(*args, **kwargs):
-        from server.base import MessageProcess
+        from server_mod.base import MessageProcess
         from common.variables import ACTION, PRESENCE
 
         if isinstance(args[0], MessageProcess):
@@ -72,7 +72,7 @@ def login_required(func):
 
 # def logger(func):
 #     def log_saver(*args, **kwargs):
-#         log_name = 'server' if 'server.py' in sys.argv[0] else 'client'
+#         log_name = 'server_mod' if 'server_mod.py' in sys.argv[0] else 'client_mod'
 #         log = logging.getLogger(log_name)
 #
 #         res = func(*args, **kwargs)

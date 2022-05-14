@@ -3,7 +3,7 @@ import sys
 import unittest
 
 from common.variables import ACTION, PRESENCE, TIME, USER, ACCOUNT_NAME, RESPONSE, ERROR
-from client import create_presence, process_response_ans
+from client_mod import create_presence, process_response_ans
 sys.path.append(os.path.join(os.getcwd(), '..'))
 
 

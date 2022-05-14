@@ -11,9 +11,9 @@ import logs.server_log_config
 from PyQt5.QtWidgets import QApplication
 from common.decorators import logger
 from common.variables import *
-from server.base import MessageProcess
-from server.server_db import ServerStorage
-from server.main_window import MainWindow
+from server_mod.base import MessageProcess
+from server_mod.server_db import ServerStorage
+from server_mod.main_window import MainWindow
 
 log = logging.getLogger('server_dist')
 

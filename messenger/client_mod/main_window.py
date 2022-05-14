@@ -9,9 +9,9 @@ from PyQt5.QtCore import Qt, pyqtSlot
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QBrush, QColor
 from PyQt5.QtWidgets import QMainWindow, qApp, QMessageBox, QApplication
 
-from client.add_contact import AddContactDialog
-from client.del_contact import DelContactDialog
-from client.main_window_btn import Ui_MainClientWindow
+from client_mod.add_contact import AddContactDialog
+from client_mod.del_contact import DelContactDialog
+from client_mod.main_window_btn import Ui_MainClientWindow
 from common.errors import ServerError
 from common.variables import *
 

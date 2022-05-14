@@ -12,7 +12,7 @@ def main():
         if ACTION == 'q':
             break
         elif ACTION == 's':
-            process.append(subprocess.Popen('python server.py',
+            process.append(subprocess.Popen('python server_mod.py',
                                             creationflags=subprocess.CREATE_NEW_CONSOLE))
         elif ACTION == 'c':
             print('Первый запуск может быть достаточно долгим из-за генерации ключей!')
